@@ -1,0 +1,27 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: whisper-lambda-cpp
+
+Globals:
+  Function:
+    Timeout: 3
+    MemorySize: 128
+
+
+Resources:
+  WhisperCppLambdaFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: ./
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures:
+        - x86_64
+
+Outputs:
+  WhisperCppLambdaFunction:
+    Value: !GetAtt WhisperCppLambdaFunction.Arn
+  WhisperCppLambdaFunctionIamRole:
+    Value: !GetAtt WhisperCppLambdaFunctionRole.Arn
