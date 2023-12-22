@@ -8,4 +8,6 @@ binary: docker_build
 	rm output/whisper_lambda_cpp.b64
 
 build-WhisperCppLambdaFunction: binary
+	cp ggml-model-whisper-tiny.en.bin $(ARTIFACTS_DIR)
+	cp wasm-test-16.wav $(ARTIFACTS_DIR)
 	cp output/whisper_lambda_cpp $(ARTIFACTS_DIR)/bootstrap
