@@ -1,0 +1,13 @@
+{
+  "cSpell.words": [
+    "diarize",
+    "drwav",
+    "pcmf"
+  ],
+  "files.associations": {
+    "thread": "cpp",
+    "vector": "cpp",
+    "ios": "cpp"
+  },
+  "cmake.configureOnOpen": true
+}

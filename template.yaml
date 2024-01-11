@@ -9,7 +9,20 @@ Globals:
 
 
 Resources:
-  WhisperCppLambdaFunction:
+  # WhisperCppLambdaFunction:
+  #   Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+  #   Metadata:
+  #     BuildMethod: makefile
+  #   Properties:
+  #     CodeUri: ./
+  #     MemorySize: 10240
+  #     Timeout: 300
+  #     Handler: bootstrap
+  #     Runtime: provided.al2
+  #     Architectures:
+  #       - x86_64
+
+  WhisperCppLambdaFunctionArm:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Metadata:
       BuildMethod: makefile
@@ -20,10 +33,4 @@ Resources:
       Handler: bootstrap
       Runtime: provided.al2
       Architectures:
-        - x86_64
-
-Outputs:
-  WhisperCppLambdaFunction:
-    Value: !GetAtt WhisperCppLambdaFunction.Arn
-  WhisperCppLambdaFunctionIamRole:
-    Value: !GetAtt WhisperCppLambdaFunctionRole.Arn
+        - arm64
