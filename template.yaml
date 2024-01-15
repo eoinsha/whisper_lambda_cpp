@@ -9,6 +9,14 @@ Globals:
 
 
 Resources:
+  AudioBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub whisper-lambda-audio-${AWS::Region}-${AWS::AccountId}
+      NotificationConfiguration:
+        EventBridgeConfiguration:
+          EventBridgeEnabled: true
+
   # WhisperCppLambdaFunction:
   #   Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
   #   Metadata:
@@ -18,7 +26,7 @@ Resources:
   #     MemorySize: 10240
   #     Timeout: 300
   #     Handler: bootstrap
-  #     Runtime: provided.al2
+  #     Runtime: provided.al2023
   #     Architectures:
   #       - x86_64
 
@@ -31,6 +39,9 @@ Resources:
       MemorySize: 10240
       Timeout: 300
       Handler: bootstrap
-      Runtime: provided.al2
+      Runtime: provided.al2023
       Architectures:
         - arm64
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref AudioBucket

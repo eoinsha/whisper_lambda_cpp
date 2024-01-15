@@ -3,5 +3,35 @@
   // Hover to view descriptions of existing attributes.
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
-  "configurations": []
+  "configurations": [
+    {
+      "type": "aws-sam",
+      "request": "direct-invoke",
+      "name": "whisper_lambda_cpp:WhisperCppLambdaFunctionArm",
+      "invokeTarget": {
+        "target": "template",
+        "templatePath": "${workspaceFolder}/template.yaml",
+        "logicalId": "WhisperCppLambdaFunctionArm"
+      },
+      "lambda": {
+        "payload": {},
+        "environmentVariables": {}
+      }
+    },
+    {
+      "name": "(lldb) test-main",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/whisper_lambda_cpp_test",
+      "args": [
+        "whisper-lambda-audio-eu-west-1-935672627075",
+        "wasm-test-16.wav"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${fileDirname}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "lldb"
+    }
+  ]
 }

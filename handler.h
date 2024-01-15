@@ -1,87 +1,53 @@
+#include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <thread>
+#include <sstream>
+#include <random>
 
 #include <aws/lambda-runtime/runtime.h>
-#include <whisper.h>
+#include <aws/core/Aws.h>
+#include <aws/core/utils/logging/LogLevel.h>
+#include <aws/core/utils/logging/ConsoleLogSystem.h>
+#include <aws/core/utils/logging/LogMacros.h>
+#include <aws/core/utils/json/JsonSerializer.h>
+#include <aws/core/utils/HashingUtils.h>
+#include <aws/core/platform/Environment.h>
+#include <aws/core/client/ClientConfiguration.h>
+#include <aws/core/auth/AWSCredentialsProvider.h>
+#include <aws/s3/S3Client.h>
+#include <aws/s3/model/GetObjectRequest.h>
 
+#include "s3_audio_processing.h"
+#include "transcription.h"
 #include "common.h"
 
-using namespace std;
 using namespace aws::lambda_runtime;
 
-int n_threads = std::thread::hardware_concurrency();
+char const TAG[] = "WHISPER_HANDLER";
 
-static invocation_response whisper_handler(invocation_request const& req)
+static invocation_response whisper_handler(invocation_request const &req, Aws::S3::S3Client &client)
 {
-  struct whisper_context_params cparams;
-  cparams.use_gpu = false;
-  struct whisper_context * ctx = whisper_init_from_file_with_params("./ggml-model-whisper-tiny.en.bin", cparams);
+  using namespace Aws::Utils::Json;
+  AWS_LOGSTREAM_INFO(TAG, "Invoked with payload: " << req.payload);
 
-  if (ctx == nullptr) {
-    return invocation_response::failure("error: failed to initialise whisper context", "error_type");
-  }
-  std::vector<float> pcmf32;               // mono-channel F32 PCM
-  std::vector<std::vector<float>> pcmf32s; // stereo-channel F32 PCM
-
-  std::string fname_inp = "wasm-test-16.wav";
-  bool diarize = false;
-
-  cout << "Reading wav" << fname_inp << endl;
-  if (!::read_wav(fname_inp, pcmf32, pcmf32s, diarize)) {
-      fprintf(stderr, "error: failed to read WAV file '%s'\n", fname_inp.c_str());
-    return invocation_response::failure("error: failed to read WAV " + fname_inp, "ReadAudioFail");
+  JsonValue json(req.payload);
+  if (!json.WasParseSuccessful()) {
+      return invocation_response::failure("Failed to parse input JSON", "InvalidJSON");
   }
 
-  whisper_full_params wparams = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
-  wparams.strategy = WHISPER_SAMPLING_GREEDY;
-  wparams.print_realtime   = false;
-  // wparams.print_progress   = true;
-  // wparams.print_timestamps = true;
-  wparams.print_special    = false;
-  wparams.translate        = false;
-  wparams.language         = "en";
-  wparams.detect_language  = false;
-  wparams.n_threads        = n_threads;
-  wparams.n_max_text_ctx   = -1;
-  wparams.offset_ms        = 0;
-  wparams.duration_ms      = 0;
+  auto v = json.View();
 
-  wparams.token_timestamps = true;
-  wparams.thold_pt         = 0.01f;
-  wparams.max_len          = 60;
-  wparams.split_on_word    = false;
-
-  wparams.speed_up         = false;
-  wparams.debug_mode       = false;
-
-  wparams.tdrz_enable      = false; // TODO - try later
-
-  wparams.initial_prompt   = 0;
-
-  if (whisper_full_parallel(ctx, wparams, pcmf32.data(), pcmf32.size(), 1) != 0) {
-    return invocation_response::failure("error: failed to process audio", "ProcessAudioFail");
+  if (!v.ValueExists("s3bucket") || !v.ValueExists("s3key") || !v.GetObject("s3bucket").IsString() ||
+      !v.GetObject("s3key").IsString()) {
+      return invocation_response::failure("Missing input value s3bucket or s3key", "InvalidJSON");
   }
-  const int n_segments = whisper_full_n_segments(ctx);
-  for (int i = 0; i < n_segments; ++i)
-  {
-    const char *text = whisper_full_get_segment_text(ctx, i);
 
-    const int64_t t0 = whisper_full_get_segment_t0(ctx, i);
-    const int64_t t1 = whisper_full_get_segment_t1(ctx, i);
-
-    cout << "t0: " << t0 << " t1: " << t1 << " text: " << text << endl;
+  auto bucket = v.GetString("s3bucket");
+  auto key = v.GetString("s3key");
+  try {
+    process_s3_audio(client, bucket, key);
+    return invocation_response::success("transcription done", "application/json");
+  } catch (const std::runtime_error &e) {
+    return invocation_response::failure(e.what(), "RuntimeError");
   }
-  // wparams.greedy.best_of   = params.best_of;
-  // wparams.beam_search.beam_size = params.beam_size;
-
-  // wparams.temperature_inc  = params.no_fallback ? 0.0f : wparams.temperature_inc;
-  // wparams.entropy_thold    = params.entropy_thold;
-  // wparams.logprob_thold    = params.logprob_thold;
-
-  whisper_print_timings(ctx);
-  whisper_free(ctx);
-
-  return invocation_response::success("transcription done" /*payload*/,
-                    "application/json" /*MIME type*/);
 }

@@ -250,3 +250,10 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 .aws-sam/
+
+# binaries
+whisper_lambda_cpp
+whisper_lambda_cpp_test
+
+CMakeCache.txt
+CMakeFiles/
