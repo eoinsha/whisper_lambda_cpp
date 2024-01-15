@@ -8,6 +8,8 @@
 using namespace std;
 using namespace Aws::Utils::Logging;
 
+std::string model = "tiny.en";
+
 int main(int argc, char **argv)
 {
   std::string bucket = argv[1];
@@ -24,13 +26,12 @@ int main(int argc, char **argv)
   };
   Aws::InitAPI(options);
 
-  std::string filename = "wasm-test-16.wav";
   Aws::Client::ClientConfiguration config;
   config.region = "eu-west-1";
   Aws::S3::S3Client client(config);
 
   try {
-    process_s3_audio(client, bucket, key);
+    process_s3_audio(client, bucket, key, model);
   } catch (const std::runtime_error &e) {
     std::cerr << e.what() << std::endl;
   }

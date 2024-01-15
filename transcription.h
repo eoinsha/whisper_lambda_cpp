@@ -3,6 +3,6 @@
 
 #include <string>
 
-void transcribe(std::string& fname_inp);
+void transcribe(std::string& fname_inp, std::string& model);
 
 #endif

@@ -1,21 +1,77 @@
+#include <filesystem>
 #include <string>
 #include <iostream>
 #include <thread>
 #include <vector>
 #include <stdexcept>
 
+#include <curl/curl.h>
 #include <whisper.h>
 #include "transcription.h"
 #include "common.h"
 
 int n_threads = std::thread::hardware_concurrency();
+std::filesystem::path model_dir = std::filesystem::temp_directory_path() / "models";
 
 
-void transcribe(std::string& fname_inp) {
+size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+    size_t written = fwrite(ptr, size, nmemb, stream);
+    return written;
+}
+
+bool download_file(const std::string& url, const std::string& file_path) {
+    CURL *curl;
+    FILE *fp;
+    CURLcode res;
+
+    curl = curl_easy_init();
+    if (curl) {
+        fp = fopen(file_path.c_str(), "wb");
+
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+        res = curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+        fclose(fp);
+
+        if (res != CURLE_OK) {
+            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+            return false;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+std::string download_model_if_needed(const std::string& model) {
+    std::string base_url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-";
+    std::string model_path = model_dir / (model + ".bin");
+    std::string url = base_url + model + ".bin";
+
+    // Check if the model already exists
+    if (!std::filesystem::exists(model_path)) {
+      std::cout << "Downloading model: " << model << " from " << url << std::endl;
+      std::filesystem::create_directories(model_dir);
+
+        if (!download_file(url, model_path)) {
+            std::cerr << "Failed to download the model" << std::endl;
+        }
+    } else {
+        std::cout << "Model already exists: " << model_path << std::endl;
+    }
+    return model_path;
+}
+
+void transcribe(std::string& fname_inp, std::string& model) {
   struct whisper_context_params cparams;
   cparams.use_gpu = false;
   std::cout << "Transcribing " << fname_inp << std::endl;
-  struct whisper_context * ctx = whisper_init_from_file_with_params("./ggml-model-whisper-tiny.en.bin", cparams);
+  const std::string model_path = download_model_if_needed(model);
+  struct whisper_context * ctx = whisper_init_from_file_with_params(model_path.data(), cparams);
 
   if (ctx == nullptr) {
     throw std::runtime_error("Error: Failed to initialise whisper context");

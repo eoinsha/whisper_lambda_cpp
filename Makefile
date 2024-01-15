@@ -14,8 +14,6 @@ binary: docker_build
 
 build-bootstrap: binary
 	@echo Creating bootstrap artifacts in $(ARTIFACTS_DIR)
-	cp ggml-model-whisper-tiny.en.bin $(ARTIFACTS_DIR)
-	cp wasm-test-*.wav $(ARTIFACTS_DIR)
 	cp $(OUTPUT_DIR)/$(ARCH)/$(PROJECT_NAME) $(ARTIFACTS_DIR)/bootstrap
 	cp $(OUTPUT_DIR)/$(ARCH)/$(PROJECT_NAME)_test $(ARTIFACTS_DIR)/test_main
 	chmod +x $(ARTIFACTS_DIR)/bootstrap

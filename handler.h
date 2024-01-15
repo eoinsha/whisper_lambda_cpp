@@ -42,10 +42,15 @@ static invocation_response whisper_handler(invocation_request const &req, Aws::S
       return invocation_response::failure("Missing input value s3bucket or s3key", "InvalidJSON");
   }
 
+  std::string model = "tiny.en";
+  if (v.ValueExists("model")) {
+    model = v.GetString("model");
+  }
+
   auto bucket = v.GetString("s3bucket");
   auto key = v.GetString("s3key");
   try {
-    process_s3_audio(client, bucket, key);
+    process_s3_audio(client, bucket, key, model);
     return invocation_response::success("transcription done", "application/json");
   } catch (const std::runtime_error &e) {
     return invocation_response::failure(e.what(), "RuntimeError");

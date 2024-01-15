@@ -25,10 +25,10 @@ private:
     std::string m_filename;
 };
 
-void process_s3_audio(Aws::S3::S3Client& client, std::string& bucket_name, std::string& audio_key) {
+void process_s3_audio(Aws::S3::S3Client& client, std::string& bucket_name, std::string& audio_key, std::string& model) {
   auto audio_filename = download_audio(client, bucket_name, audio_key);
   FileCleaner cleaner(audio_filename); // Auto-deletes the file when cleaner goes out of scope
-  transcribe(audio_filename);
+  transcribe(audio_filename, model);
 }
 
 std::string download_audio(

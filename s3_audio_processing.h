@@ -4,7 +4,7 @@
 
 std::string generate_temp_filename();
 
-void process_s3_audio(Aws::S3::S3Client& client, std::string& bucket_name, std::string& audio_key);
+void process_s3_audio(Aws::S3::S3Client& client, std::string& bucket_name, std::string& audio_key, std::string& model);
 
 std::string download_audio(
     Aws::S3::S3Client const& client,

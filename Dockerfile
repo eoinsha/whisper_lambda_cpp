@@ -6,7 +6,6 @@ RUN mkdir src
 WORKDIR /src
 RUN dnf install cmake3 make gcc libcurl-devel openssl-devel git -y
 
-# RUN ln -s /usr/bin/cmake3 /usr/bin/cmake
 RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp
 RUN git clone https://github.com/awslabs/aws-lambda-cpp.git
 RUN git clone https://github.com/ggerganov/whisper.cpp.git
