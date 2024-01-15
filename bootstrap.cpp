@@ -28,7 +28,7 @@ int main()
     Aws::Client::ClientConfiguration config;
     config.region = Aws::Environment::GetEnv("AWS_REGION");
 
-    Aws::S3::S3Client client(config);
+  Aws::S3::S3Client client(config);
     auto handler_fn = [&client](aws::lambda_runtime::invocation_request const &req) {
       return whisper_handler(req, client);
     };

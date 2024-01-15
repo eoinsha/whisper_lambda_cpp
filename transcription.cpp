@@ -7,6 +7,7 @@
 
 #include <curl/curl.h>
 #include <whisper.h>
+#include "json_output.h"
 #include "transcription.h"
 #include "common.h"
 
@@ -66,7 +67,7 @@ std::string download_model_if_needed(const std::string& model) {
     return model_path;
 }
 
-void transcribe(std::string& fname_inp, std::string& model) {
+void transcribe(std::string& fname_inp, std::string& model, std::string const& outfile) {
   struct whisper_context_params cparams;
   cparams.use_gpu = false;
   std::cout << "Transcribing " << fname_inp << std::endl;
@@ -118,16 +119,17 @@ void transcribe(std::string& fname_inp, std::string& model) {
     throw std::runtime_error("Error: Failed to process audio");
   }
 
-  const int n_segments = whisper_full_n_segments(ctx);
-  for (int i = 0; i < n_segments; ++i)
-  {
-    const char *text = whisper_full_get_segment_text(ctx, i);
+  // const int n_segments = whisper_full_n_segments(ctx);
+  // for (int i = 0; i < n_segments; ++i)
+  // {
+  //   const char *text = whisper_full_get_segment_text(ctx, i);
 
-    const int64_t t0 = whisper_full_get_segment_t0(ctx, i);
-    const int64_t t1 = whisper_full_get_segment_t1(ctx, i);
+  //   const int64_t t0 = whisper_full_get_segment_t0(ctx, i);
+  //   const int64_t t1 = whisper_full_get_segment_t1(ctx, i);
 
-    std::cout << "t0: " << t0 << " t1: " << t1 << " text: " << text << std::endl;
-  }
+  //   std::cout << "t0: " << t0 << " t1: " << t1 << " text: " << text << std::endl;
+  // }
+  create_whisper_json_output(ctx, outfile);
   // wparams.greedy.best_of   = params.best_of;
   // wparams.beam_search.beam_size = params.beam_size;
 
