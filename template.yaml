@@ -45,3 +45,21 @@ Resources:
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref AudioBucket
+      Events:
+        S3Trigger:
+          Type: EventBridgeRule
+          Properties:
+            Pattern:
+              source:
+                - aws.s3
+              detail-type:
+                - Object Created
+              detail:
+                bucket:
+                  name:
+                    - !Ref AudioBucket
+            InputTransformer:
+              InputPathsMap:
+                s3bucket: $.detail.bucket.name
+                s3key: $.detail.object.key
+              InputTemplate: '{"s3key": "<s3key>", "s3bucket": "<s3bucket>"}'
