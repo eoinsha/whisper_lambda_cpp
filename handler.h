@@ -1,8 +1,5 @@
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <random>
+#ifndef HANDLER_H_
+#define HANDLER_H_
 
 #include <aws/lambda-runtime/runtime.h>
 #include <aws/core/Aws.h>
@@ -17,6 +14,13 @@
 #include <aws/s3/S3Client.h>
 #include <aws/s3/model/GetObjectRequest.h>
 
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <random>
+#include <sstream>
+#include <string>
+
 #include "s3_audio_processing.h"
 #include "transcription.h"
 #include "common.h"
@@ -25,8 +29,7 @@ using namespace aws::lambda_runtime;
 
 char const TAG[] = "WHISPER_HANDLER";
 
-static invocation_response whisper_handler(invocation_request const &req, Aws::S3::S3Client &client)
-{
+static invocation_response whisper_handler(invocation_request const &req, Aws::S3::S3Client const &client) {
   using namespace Aws::Utils::Json;
   AWS_LOGSTREAM_INFO(TAG, "Invoked with payload: " << req.payload);
 
@@ -56,3 +59,5 @@ static invocation_response whisper_handler(invocation_request const &req, Aws::S
     return invocation_response::failure(e.what(), "RuntimeError");
   }
 }
+
+#endif  // HANDLER_H_

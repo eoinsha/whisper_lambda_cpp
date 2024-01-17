@@ -1,3 +1,6 @@
+#ifndef TEMPFILE_H_
+#define TEMPFILE_H_
+
 #include <filesystem>
 #include <string>
 #include <sstream>
@@ -6,27 +9,26 @@
 /**
  * Create a temporary filename with the given extension. The file is not created.
  */
-std::string generate_temp_filename(std::string const &ext)
-{
+std::string generate_temp_filename(std::string const &ext) {
   std::random_device rd;
   std::mt19937 generator(rd());
-  std::uniform_int_distribution<unsigned long long> distribution;
+  std::uniform_int_distribution<u_int64_t> distribution;
 
   std::stringstream filename;
-  filename << std::filesystem::temp_directory_path().string() << "/tempfile_" << distribution(generator) << "." << ext;
+  filename << std::filesystem::temp_directory_path().string() << "/tempfile_" << distribution(generator) << ext;
 
   return filename.str();
 }
 
-class FileCleaner
-{
-public:
+class FileCleaner {
+ public:
   explicit FileCleaner(const std::string &filename) : m_filename(filename) {}
-  ~FileCleaner()
-  {
+  ~FileCleaner() {
     std::filesystem::remove(m_filename);
   }
 
-private:
+ private:
   std::string m_filename;
 };
+
+#endif  // TEMPFILE_H_

@@ -1,3 +1,8 @@
+#include "transcription.h"
+
+#include <curl/curl.h>
+#include <whisper.h>
+
 #include <filesystem>
 #include <string>
 #include <iostream>
@@ -5,10 +10,7 @@
 #include <vector>
 #include <stdexcept>
 
-#include <curl/curl.h>
-#include <whisper.h>
 #include "json_output.h"
-#include "transcription.h"
 #include "common.h"
 
 int n_threads = std::thread::hardware_concurrency();
@@ -67,7 +69,7 @@ std::string download_model_if_needed(const std::string& model) {
     return model_path;
 }
 
-void transcribe(std::string& fname_inp, std::string& model, std::string const& outfile) {
+void transcribe(std::string const& fname_inp, std::string const& model, std::string const& outfile) {
   struct whisper_context_params cparams;
   cparams.use_gpu = false;
   std::cout << "Transcribing " << fname_inp << std::endl;
@@ -78,13 +80,13 @@ void transcribe(std::string& fname_inp, std::string& model, std::string const& o
     throw std::runtime_error("Error: Failed to initialise whisper context");
   }
 
-  std::vector<float> pcmf32;               // mono-channel F32 PCM
-  std::vector<std::vector<float>> pcmf32s; // stereo-channel F32 PCM
+  std::vector<float> pcmf32;                // mono-channel F32 PCM
+  std::vector<std::vector<float>> pcmf32s;  // stereo-channel F32 PCM
 
   bool diarize = false;
 
   std::cout << "Reading wav " << fname_inp << std::endl;
-  if (!::read_wav(fname_inp, pcmf32, pcmf32s, diarize)) {
+  if (!::read_wav(fname_inp, &pcmf32, &pcmf32s, diarize)) {
       fprintf(stderr, "error: failed to read WAV file '%s'\n", fname_inp.c_str());
     throw std::runtime_error("Error: Failed to read WAV file '" + fname_inp + "'");
   }
@@ -111,7 +113,7 @@ void transcribe(std::string& fname_inp, std::string& model, std::string const& o
   wparams.speed_up         = false;
   wparams.debug_mode       = false;
 
-  wparams.tdrz_enable      = false; // TODO - try later
+  wparams.tdrz_enable      = false;  // TODO(eoin) - try later
 
   wparams.initial_prompt   = 0;
 

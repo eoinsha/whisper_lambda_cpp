@@ -6,6 +6,9 @@ Globals:
   Function:
     Timeout: 3
     MemorySize: 128
+    Environment:
+      Variables:
+        LAMBDA_INSIGHTS_LOG_LEVEL: info
 
 
 Resources:
@@ -17,18 +20,27 @@ Resources:
         EventBridgeConfiguration:
           EventBridgeEnabled: true
 
-  # WhisperCppLambdaFunction:
-  #   Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-  #   Metadata:
-  #     BuildMethod: makefile
-  #   Properties:
-  #     CodeUri: ./
-  #     MemorySize: 10240
-  #     Timeout: 300
-  #     Handler: bootstrap
-  #     Runtime: provided.al2023
-  #     Architectures:
-  #       - x86_64
+  WhisperCppLambdaFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: ./
+      MemorySize: 10240
+      Timeout: 900
+      Handler: bootstrap
+      Runtime: provided.al2023
+      Architectures:
+        - x86_64
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref AudioBucket
+        - CloudWatchLambdaInsightsExecutionRolePolicy
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14"
+      Tracing: Active
+      EphemeralStorage:
+        Size: 10240
 
   WhisperCppLambdaFunctionArm:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
@@ -37,7 +49,7 @@ Resources:
     Properties:
       CodeUri: ./
       MemorySize: 10240
-      Timeout: 300
+      Timeout: 900
       Handler: bootstrap
       Runtime: provided.al2023
       Architectures:
@@ -45,6 +57,10 @@ Resources:
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref AudioBucket
+        - CloudWatchLambdaInsightsExecutionRolePolicy
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension-Arm64:5"
+      Tracing: Active
       Events:
         S3Trigger:
           Type: EventBridgeRule
@@ -63,3 +79,5 @@ Resources:
                 s3bucket: $.detail.bucket.name
                 s3key: $.detail.object.key
               InputTemplate: '{"s3key": "<s3key>", "s3bucket": "<s3bucket>"}'
+      EphemeralStorage:
+        Size: 10240

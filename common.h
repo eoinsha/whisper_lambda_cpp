@@ -1,3 +1,6 @@
+#ifndef COMMON_H_
+#define COMMON_H_
+
 #include <string>
 #include <vector>
 
@@ -5,7 +8,8 @@
 
 bool read_wav(
   const std::string & fname,
-  std::vector<float> & pcmf32,
-  std::vector<std::vector<float>> & pcmf32s,
+  std::vector<float> * pcmf32,
+  std::vector<std::vector<float>> * pcmf32s,
   bool stereo
 );
+#endif  // COMMON_H_

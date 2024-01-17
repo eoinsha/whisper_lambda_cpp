@@ -9,7 +9,6 @@ RUN dnf install cmake3 make gcc libcurl-devel openssl-devel git -y
 RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp
 RUN git clone https://github.com/awslabs/aws-lambda-cpp.git
 RUN git clone https://github.com/ggerganov/whisper.cpp.git
-RUN git clone https://github.com/Tencent/rapidjson.git
 
 RUN cd aws-lambda-cpp && mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local && make -j && make install
 
@@ -17,8 +16,6 @@ RUN cd aws-sdk-cpp && mkdir build && cd build && cmake .. -DBUILD_SHARED_LIBS=OF
 RUN cd aws-sdk-cpp/build && cmake --build . --config Release && cmake --install . --config Release
 
 RUN cd whisper.cpp && mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/usr/local && make -j && make install
-
-RUN mv rapidjson/include/rapidjson /usr/local/include
 
 RUN mkdir -p /app/build
 COPY CMakeLists.txt /app/

@@ -1,8 +1,8 @@
-#ifndef TRANSCRIPTION_H
-#define TRANSCRIPTION_H
+#ifndef TRANSCRIPTION_H_
+#define TRANSCRIPTION_H_
 
 #include <string>
 
-void transcribe(std::string& fname_inp, std::string& model, std::string const& outfile);
+void transcribe(std::string const& fname_inp, std::string const& model, std::string const& outfile);
 
-#endif
+#endif  // TRANSCRIPTION_H_

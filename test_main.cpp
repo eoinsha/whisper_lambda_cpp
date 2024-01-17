@@ -1,17 +1,17 @@
-#include <iostream>
 #include <aws/core/Aws.h>
 #include <aws/core/utils/logging/ConsoleLogSystem.h>
 #include <aws/core/utils/logging/LogLevel.h>
+
+#include <iostream>
 
 #include "s3_audio_processing.h"
 
 using namespace std;
 using namespace Aws::Utils::Logging;
 
-std::string model = "tiny.en";
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
+  std::string model = "tiny.en";
   std::string bucket = argv[1];
   std::string key = argv[2];
 
@@ -19,8 +19,7 @@ int main(int argc, char **argv)
   Aws::SDKOptions options;
   options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Info;
   options.loggingOptions.logger_create_fn = [] { return std::make_shared<ConsoleLogSystem>(LogLevel::Info); };
-  options.loggingOptions.crt_logger_create_fn = []()
-  {
+  options.loggingOptions.crt_logger_create_fn = []() {
     return Aws::MakeShared<Aws::Utils::Logging::DefaultCRTLogSystem>(
         "CRTLogSystem", Aws::Utils::Logging::LogLevel::Warn);
   };

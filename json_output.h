@@ -1,43 +1,46 @@
+#ifndef JSON_OUTPUT_H_
+#define JSON_OUTPUT_H_
+
+#include <aws/core/utils/json/JsonSerializer.h>
+#include <whisper.h>
 #include <iostream>
 #include <fstream>
-#include <rapidjson/document.h>
-#include <rapidjson/writer.h>
-#include <rapidjson/stringbuffer.h>
-#include <whisper.h>
+#include <string>
+#include <utility>
 
-void create_whisper_json_output(whisper_context *ctx, std::string const& outfile) {
-    const int n_segments = whisper_full_n_segments(ctx);
+using namespace Aws::Utils::Json;
 
-    rapidjson::Document doc;
-    doc.SetObject();
-    rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+void create_whisper_json_output(whisper_context *ctx, std::string const &outfile)
+{
+  const int n_segments = whisper_full_n_segments(ctx);
 
-    rapidjson::Value segments(rapidjson::kArrayType);
+  Aws::Utils::Array<JsonValue> segments(n_segments);
+  for (int i = 0; i < n_segments; ++i)
+  {
+    JsonValue segment;
 
-    for (int i = 0; i < n_segments; ++i) {
-        rapidjson::Value segment(rapidjson::kObjectType);
+    const char *text = whisper_full_get_segment_text(ctx, i);
+    const int64_t t0 = whisper_full_get_segment_t0(ctx, i);
+    const int64_t t1 = whisper_full_get_segment_t1(ctx, i);
 
-        const char* text = whisper_full_get_segment_text(ctx, i);
-        const int64_t t0 = whisper_full_get_segment_t0(ctx, i);
-        const int64_t t1 = whisper_full_get_segment_t1(ctx, i);
+    segment.WithInteger("id", i);
+    segment.WithDouble("start", t0 / 100.0);
+    segment.WithDouble("end", t1 / 100.0);
+    segment.WithString("text", text);
 
-        segment.AddMember("id", i, allocator);
-        segment.AddMember("start", t0, allocator);
-        segment.AddMember("end", t1, allocator);
-        segment.AddMember("text", rapidjson::StringRef(text), allocator);
+    segments[i] = std::move(segment);
+  }
 
-        segments.PushBack(segment, allocator);
-    }
+  JsonValue transcript;
+  transcript.WithArray("segments", segments);
+  JsonValue doc;
+  doc.WithObject("transcript", transcript);
 
-    doc.AddMember("segments", segments, allocator);
+  std::ofstream ofile(outfile);
+  ofile << doc.View().WriteReadable();
+  ofile.close();
 
-    rapidjson::StringBuffer buffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    doc.Accept(writer);
-
-    std::ofstream ofile(outfile);
-    ofile << buffer.GetString();
-    ofile.close();
-
-    std::cout << buffer.GetString() << std::endl;
+  std::cout << doc.View().WriteReadable() << std::endl;
 }
+
+#endif  // JSON_OUTPUT_H_
