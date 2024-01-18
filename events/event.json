@@ -1,0 +1,4 @@
+{
+    "s3bucket": "whisper-lambda-audio-eu-west-1-935672627075",
+    "s3key": "test-16.wav"
+}

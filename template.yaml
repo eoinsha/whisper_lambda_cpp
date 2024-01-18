@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: whisper-lambda-cpp
+
+Globals:
+  Function:
+    Timeout: 3
+    MemorySize: 128
+    Environment:
+      Variables:
+        LAMBDA_INSIGHTS_LOG_LEVEL: info
+
+
+Resources:
+  AudioBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub whisper-lambda-audio-${AWS::Region}-${AWS::AccountId}
+      NotificationConfiguration:
+        EventBridgeConfiguration:
+          EventBridgeEnabled: true
+
+  WhisperCppLambdaFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: ./
+      MemorySize: 10240
+      Timeout: 900
+      Handler: bootstrap
+      Runtime: provided.al2023
+      Architectures:
+        - x86_64
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref AudioBucket
+        - CloudWatchLambdaInsightsExecutionRolePolicy
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:14"
+      Tracing: Active
+      EphemeralStorage:
+        Size: 10240
+
+  WhisperCppLambdaFunctionArm:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: ./
+      MemorySize: 10240
+      Timeout: 900
+      Handler: bootstrap
+      Runtime: provided.al2023
+      Architectures:
+        - arm64
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref AudioBucket
+        - CloudWatchLambdaInsightsExecutionRolePolicy
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension-Arm64:5"
+      Tracing: Active
+      Events:
+        S3Trigger:
+          Type: EventBridgeRule
+          Properties:
+            Pattern:
+              source:
+                - aws.s3
+              detail-type:
+                - Object Created
+              detail:
+                bucket:
+                  name:
+                    - !Ref AudioBucket
+            InputTransformer:
+              InputPathsMap:
+                s3bucket: $.detail.bucket.name
+                s3key: $.detail.object.key
+              InputTemplate: '{"s3key": "<s3key>", "s3bucket": "<s3bucket>"}'
+      EphemeralStorage:
+        Size: 10240
