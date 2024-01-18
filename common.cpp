@@ -1,8 +1,18 @@
+/*
+ * Taken from whisper.cpp https://github.com/ggerganov/whisper.cpp/blob/fb466b34174710ec6e5bb6c7e887472f49c26558/examples/common.cpp#L618
+ * Copyright (c) 2023 Georgi Gerganov - MIT LICENSE
+ */
 #include "common.h"
 
 #define DR_WAV_IMPLEMENTATION
 #include "dr_wav.h"
 
+/**
+ * whisper.cpp's example WAV reading function.
+ * 
+ * This function supports mono/stereo conversion as required for speaker diarization.
+ * Although diarization is not used in our example, the code here is retained for easy comparison with the original.
+*/
 bool read_wav(std::string const &fname, std::vector<float> *pcmf32, std::vector<std::vector<float>> *pcmf32s, bool stereo) {
   drwav wav;
   std::vector<uint8_t> wav_data;  // used to pipe input from stdin
