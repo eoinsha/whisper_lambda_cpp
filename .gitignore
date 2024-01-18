@@ -259,3 +259,4 @@ CMakeCache.txt
 CMakeFiles/
 build/
 aws_sdk*.log
+samconfig.toml
