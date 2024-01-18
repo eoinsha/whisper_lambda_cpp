@@ -73,6 +73,9 @@ void transcribe(std::string const& fname_inp, std::string const& model, std::str
   struct whisper_context_params cparams;
   cparams.use_gpu = false;
   std::cout << "Transcribing " << fname_inp << std::endl;
+  const char* system_info = whisper_print_system_info();
+  std::cout << "system_info " << system_info << std::endl;
+
   const std::string model_path = download_model_if_needed(model);
   struct whisper_context * ctx = whisper_init_from_file_with_params(model_path.data(), cparams);
 
